@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>每日一文</title>
+    <script src="./myajax.js"></script>
+    <script src="./jquery-3.4.1.js"></script>
+    <style>
+        html,body{
+            width:100%;
+            height:100%;
+            margin:0;
+            padding:0;
+        }
+        .logo{
+            width:80%;
+            height:217px;
+            margin:0 auto;
+        }
+        .logo>img{
+            width:100%;
+            height:100%;
+        }
+        main{
+            position:relative;
+        }
+        form{
+            width:80%;
+            margin:0 auto;
+            text-align:right;
+            line-height:50px;
+        }
+        .btns{
+            width:80%;
+            margin:0 auto;
+            display:flex;
+            justify-content: space-between;
+        }
+        .text{
+            width:80%;
+            margin:0 auto;
+        }
+        #title{
+            text-align:center;
+        }
+        .date{
+            display:flex;
+            justify-content: space-between;
+        }
+        #suiji{
+            position:absolute;
+            top:100px;
+            right:400px;
+            width:50px;
+            height:50px;
+        }
+        #suiji>img{
+            width:100%;
+            height:100%;
+        }
+    </style>
+</head>
+<body>
+    <header class="logo">
+        <img src="./1.jpg" alt="">
+    </header>
+    <main>
+        <form action="#" id="form">
+            <input type="text" name="date" placeholder="输入时间20200322">
+            <input id="submit" type="submit" value="搜索">
+        </form>
+        <div class="btns">
+            <button id="prevbtn">上一章</button>
+            <button id="nextbtn">下一章</button>
+        </div>
+        <div class="text">
+            <h1 id="title">标题</h1>
+            <div class="date">
+                <h3 id="author">作者</h3>
+                <h4 id="time">时间</h4>
+            </div>
+            <div id="content">内容</div>
+        </div>
+        <div id="suiji">
+            <img src="./2.jpg" alt="">
+        </div>
+    </main>
+
+    <script>
+        //获取当天文章
+        var today = "";
+        var td = new Date();
+        today = ""+td.getFullYear()+add0(td.getMonth() + 1)+add0(td.getDate());
+        var prevdate,currdate,nextdate;
+            _.get("https://interface.meiriyiwen.com/article/today", {
+                dev: 1
+            }, function (d, e) {
+                console.log(d);
+                createArticle(d.data.title, d.data.date.curr, d.data.author, d.data.content, d.data.date.prev, d.data.date.next);
+            })
+        function createArticle(title, date, author, content, prev, next) {
+            $("#title").empty().text(title);
+            $("#author").empty().text(author);
+            $("#time").empty().text(date);
+            $("#content").empty().html(content);
+            prevdate = prev;
+            currdate = date;
+            nextdate = next;
+        }
+        //根据设定的时间获取指定时间的文章
+        $("#submit").click(function(e){
+            e.preventDefault();
+            var res = _.formSerializeToJson($("#form")[0]);
+            requestArticleData(res.date);
+        });
+        //图片点击的时候获取随机的文章
+        $("#suiji").click(function(){
+            _.get("https://interface.meiriyiwen.com/article/random", {
+                dev: 1
+            }, function (d, e) {
+                console.log(d);
+                createArticle(d.data.title, d.data.date.curr, d.data.author, d.data.content, d.data.date.prev, d.data.date.next);
+            });
+        })
+        
+        //点击上一页获取指定文章
+        $("#prevbtn").click(function(){
+            requestArticleData(prevdate);
+        });
+        //点击下一页获取指定的文章
+        $("#nextbtn").click(function(){
+            if(parseInt(nextdate)<=parseInt(today)){
+                requestArticleData(nextdate);
+            }
+        })
+        function requestArticleData(dt) {
+            _.get("https://interface.meiriyiwen.com/article/day", {
+                dev: 1,
+                date: dt
+            }, function (d, e) {
+                createArticle(d.data.title, d.data.date.curr, d.data.author, d.data.content, d.data.date.prev, d.data.date.next);
+            })
+        }
+        function add0(n) {
+            return n < 10 ? "0" + n : n;
+        }
+    </script>
+</body>
+</html>
